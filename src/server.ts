@@ -1,44 +1,110 @@
+import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
-import postRoutes from "./routes/postRoutes";
+import config from "./config";
 
-// تنظیمات
-// در پروژه‌های واقعی، از کتابخانه 'dotenv' برای خواندن این مقادیر استفاده کنید.
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/blogdb";
-const PORT = 3000;
+// Import routes
+import authRoutes from "./domains/auth/authRoutes";
+import categoryRoutes from "./domains/categories/categoryRoutes";
+import commentRoutes from "./domains/comments/commentRoutes";
+import postRoutes from "./domains/posts/postRoutes";
+import { errorMiddleware } from "./shared/middleware/errorMiddleware";
 
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api", postRoutes);
+app.use("/api", commentRoutes);
+app.use("/api", categoryRoutes);
+
+// Health check
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is running smoothly",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`,
+  });
+});
+
+// Error middleware
+app.use(errorMiddleware);
+
+// Database connection
 const connectDB = async () => {
   try {
-    // توصیه می‌شود از گزینه 'useNewUrlParser' و 'useUnifiedTopology' استفاده نکنید، زیرا در نسخه‌های جدید Mongoose پیش‌فرض هستند.
-    await mongoose.connect(MONGO_URI);
-    console.log("✅ MongoDB connected successfully!");
+    await mongoose.connect(config.database.url);
+    console.log("✅ Connected to MongoDB successfully");
   } catch (error) {
-    // پیام خطا را ساده‌تر و صریح‌تر چاپ می‌کنیم تا از خروج پنهان جلوگیری شود.
-    console.error(
-      "❌ MongoDB connection failed. Please ensure your MongoDB service is running."
-    );
-    console.error("Details:", error);
-
-    // خروج از برنامه در صورت عدم اتصال
+    console.error("❌ MongoDB connection error:", error);
     process.exit(1);
   }
 };
 
-const app = express();
+// Start server - فقط در محیط غیر تست اجرا بشه
+const startServer = async () => {
+  await connectDB();
 
-// Middlewareها
-app.use(express.json());
+  // اگر محیط تست نیست، سرور رو اجرا کن
+  if (process.env.NODE_ENV !== "test") {
+    const server = app.listen(config.port, () => {
+      console.log(`🚀 Server is running on port ${config.port}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log("📝 Available endpoints:");
+      console.log("   GET  /api/health");
+      console.log("   POST /api/auth/register");
+      console.log("   POST /api/auth/login");
+      console.log("   GET  /api/auth/profile");
+      console.log("   GET  /api/posts");
+      console.log("   POST /api/posts");
+      console.log("   GET  /api/posts/:id");
+      console.log("   PUT  /api/posts/:id");
+      console.log("   DEL  /api/posts/:id");
+      console.log("   GET  /api/me/posts");
+      console.log("   GET  /api/posts/:postId/comments");
+      console.log("   POST /api/comments");
+      console.log("   PUT  /api/comments/:id");
+      console.log("   DEL  /api/comments/:id");
+      console.log("   POST /api/comments/:id/like");
+      console.log("   GET  /api/me/comments");
+      console.log("   GET  /api/categories");
+      console.log("   POST /api/categories");
+      console.log("   GET  /api/categories/popular");
+      console.log("   GET  /api/categories/:id");
+      console.log("   GET  /api/categories/slug/:slug");
+      console.log("   PUT  /api/categories/:id");
+      console.log("   DEL  /api/categories/:id");
+    });
 
-// تعریف مسیرهای API
-app.use("/posts", postRoutes);
+    return server;
+  }
 
-// -------------------------------------------------------------------
-// راه‌اندازی برنامه
-// -------------------------------------------------------------------
+  return app;
+};
 
-// ابتدا به دیتابیس متصل می‌شویم و سپس سرور را اجرا می‌کنیم.
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  });
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (err: Error) => {
+  console.log("❌ Unhandled Rejection! Shutting down...");
+  console.log(err.name, err.message);
+  process.exit(1);
 });
+
+// فقط اگر فایل مستقیماً اجرا شده (نه در تست) و محیط تست نیست
+if (require.main === module && process.env.NODE_ENV !== "test") {
+  startServer();
+}
+
+export default app;

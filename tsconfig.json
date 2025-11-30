@@ -1,27 +1,32 @@
 {
   "compilerOptions": {
-    /* تنظیمات پروژه برای محیط Node.js */
-    "target": "es2020", // کامپایل به نسخه مدرن جاوااسکریپت
-    "module": "commonjs", // 🎯 حیاتی: استفاده از سیستم ماژول Node.js
-    "rootDir": "./src", // پوشه اصلی فایل‌های TS
-    "outDir": "./dist", // پوشه خروجی (اختیاری، اما خوب است)
-
-    /* تنظیمات سازگاری */
-    // 🎯 حیاتی: این گزینه به شما اجازه می‌دهد تا ماژول‌هایی که CommonJS استفاده می‌کنند
-    // (مانند Express و Mongoose) را با سینتکس ES Module (import) ایمپورت کنید.
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
-    /* تنظیمات بررسی نوع */
-    "strict": true, // فعال کردن بررسی‌های سخت‌گیرانه (توصیه شده)
-    "skipLibCheck": true, // صرف نظر از بررسی کتابخانه‌های نصب شده (برای سرعت)
-
-    // موارد زیر را غیر فعال می‌کنیم چون با CommonJS ناسازگارند و فقط مختص ESM هستند:
-    "isolatedModules": false,
-    "verbatimModuleSyntax": false,
-    "noUncheckedSideEffectImports": false
+    "resolveJsonModule": true,
+    "declaration": false,
+    "removeComments": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["node_modules/*", "types/*"]
+    },
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": [
-    "src/**/*" // فقط فایل‌های داخل پوشه src را شامل شود
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
