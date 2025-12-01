@@ -1,4 +1,4 @@
-````markdown
+
 # 🚀 Blogging Platform API
 
 A robust and scalable **Backend API** for a modern blogging platform, built with **Node.js, Express.js, and TypeScript**. It follows a clean, layered architecture (Controller, Service, Repository) for maintainability and separation of concerns.
@@ -34,7 +34,6 @@ A robust and scalable **Backend API** for a modern blogging platform, built with
 git clone <YOUR_REPOSITORY_URL>
 cd blogging-platform-api
 ```
-````
 
 ### 2. Install Dependencies
 
